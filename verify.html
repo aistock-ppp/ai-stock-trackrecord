@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>予測改ざん検証ページ — AI株式アナリスト</title>
+<style>
+  :root {
+    --bg:#0f0f23; --card:#1a1a2e; --border:#2a2a4a;
+    --text:#e0e0e0; --muted:#888; --accent:#4fc3f7;
+    --pos:#4CAF50; --neg:#F44336;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text);
+          font-family:'Segoe UI',sans-serif; padding:32px; max-width:960px; margin:0 auto; }
+  h1 { font-size:1.7rem; color:var(--accent); margin-bottom:6px; }
+  h2 { font-size:1.1rem; color:var(--accent); margin:32px 0 10px;
+        border-left:3px solid var(--accent); padding-left:10px; }
+  .meta { color:var(--muted); font-size:0.85rem; margin-bottom:28px; }
+  .card { background:var(--card); border:1px solid var(--border);
+            border-radius:10px; padding:20px; margin-bottom:20px; }
+  .badge { display:inline-block; background:rgba(76,175,80,0.15);
+             border:1px solid #4CAF50; color:#4CAF50; border-radius:20px;
+             padding:4px 14px; font-size:0.82rem; margin-bottom:16px; }
+  table { width:100%; border-collapse:collapse; font-size:0.88rem; }
+  th { background:#0a0a1a; color:var(--accent); text-align:left;
+        padding:10px 14px; border-bottom:2px solid var(--border); }
+  td { padding:9px 14px; border-bottom:1px solid var(--border); }
+  tr:hover td { background:rgba(79,195,247,0.04); }
+  code { background:#111; border:1px solid #333; border-radius:4px;
+           padding:2px 6px; font-size:0.85rem; color:#80cbc4; }
+  pre { background:#0a0a1a; border:1px solid var(--border); border-radius:8px;
+          padding:16px; overflow-x:auto; font-size:0.82rem; line-height:1.6;
+          color:#b0bec5; margin:12px 0; }
+  .step { background:rgba(79,195,247,0.05); border:1px solid rgba(79,195,247,0.2);
+            border-radius:8px; padding:14px 18px; margin-bottom:12px; }
+  .step-num { color:var(--accent); font-weight:700; margin-right:8px; }
+  a { color:var(--accent); }
+  .disclaimer { background:rgba(255,235,59,0.07); border:1px solid rgba(255,235,59,0.3);
+                  border-radius:8px; padding:14px; margin-top:32px;
+                  font-size:0.82rem; color:#bdb76b; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<h1>予測改ざん検証ページ</h1>
+<div class="meta">最終更新: 2026-05-13 03:02 — AI株式アナリスト トラックレコード</div>
+
+<div class="card">
+  <div class="badge">🔒 暗号学的改ざん防止</div>
+  <p style="line-height:1.8;color:#ccc;">
+    このシステムは、<strong>市場が開く前に予測を確定・公開</strong>し、
+    その内容が後から変更されていないことをSHA256ハッシュとGitコミット履歴によって証明します。<br>
+    ハッシュは毎朝7時（東京時間）にGitHubにプッシュされ、
+    予測原本は大引け後16時以降に公開されます。
+    GitHubのコミット日時は改ざんできないため、<strong>後出しでの「予測変更」は不可能</strong>です。
+  </p>
+</div>
+
+<h2>過去の予測一覧</h2>
+<div class="card">
+  <table>
+    <tr>
+      <th>日付</th>
+      <th>SHA256ハッシュ（先頭16桁）</th>
+      <th>予測件数</th>
+      <th>検証結果</th>
+      <th>原本</th>
+    </tr>
+    <tr>
+          <td>2026-04-13</td>
+          <td style="font-family:monospace;font-size:0.82rem;color:#aaa;"
+              title="22d614448dd25a140b387fbe74d1411d1331e69d2ea0b139fb240806dd422e4c">22d614448dd25a14…</td>
+          <td>71件 (buy:4 / sell:1)</td>
+          <td><span style="color:#4CAF50;font-weight:700;">✓ 検証済</span></td>
+          <td><a href="daily_predictions/2026-04-13_full.json" style="color:#4fc3f7;">原本JSON</a></td>
+        </tr>
+  </table>
+</div>
+
+<h2>自分でハッシュを検証する方法</h2>
+<div class="card">
+  <div class="step">
+    <span class="step-num">Step 1.</span>
+    原本JSONをダウンロードする（上の表の「原本JSON」リンク）
+  </div>
+  <div class="step">
+    <span class="step-num">Step 2.</span>
+    以下のPythonコードでSHA256を計算する:
+    <pre>import hashlib, json
+
+with open("YYYY-MM-DD_full.json", encoding="utf-8") as f:
+    payload = json.load(f)
+
+canonical = json.dumps(payload, ensure_ascii=False,
+                        sort_keys=True, separators=(",", ":"))
+digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+print(digest)</pre>
+  </div>
+  <div class="step">
+    <span class="step-num">Step 3.</span>
+    計算したハッシュを <code>YYYY-MM-DD_hash.txt</code> の先頭行と比較する。
+    一致すれば原本は改ざんされていません。
+  </div>
+  <div class="step">
+    <span class="step-num">Step 4.</span>
+    GitHubのコミット履歴でハッシュファイルのコミット日時を確認する。
+    <br>コミット日時 &lt; 東京市場の開場時刻（9:00）であれば、
+    その予測は市場開場前に確定されたことが証明されます。
+  </div>
+</div>
+
+<h2>検証の仕組み</h2>
+<div class="card" style="line-height:1.9;color:#ccc;">
+  <p>
+    <strong>1. 朝7時 (シグナル生成直後)</strong><br>
+    &nbsp;&nbsp;① 予測JSON（銘柄・エントリー価格・TP/SL・AI判断理由）を内部保存<br>
+    &nbsp;&nbsp;② JSONのSHA256を計算し <code>YYYY-MM-DD_hash.txt</code> に保存<br>
+    &nbsp;&nbsp;③ ハッシュファイルのみをGitHubにコミット・プッシュ
+    &nbsp;&nbsp;&nbsp;&nbsp;<em>← このタイムスタンプが「予測確定日時」の証拠</em>
+  </p>
+  <p style="margin-top:12px;">
+    <strong>2. 夕16時以降 (大引け後)</strong><br>
+    &nbsp;&nbsp;① 朝保存した内部JSONをハッシュ再検証（一致しなければ公開中止）<br>
+    &nbsp;&nbsp;② 原本JSON <code>YYYY-MM-DD_full.json</code> をGitHubに公開<br>
+    &nbsp;&nbsp;③ 誰でもStep 2の手順でハッシュを検証可能になる
+  </p>
+  <p style="margin-top:12px;color:#888;font-size:0.88rem;">
+    ※ GitHubのコミット日時はサーバー側で記録されるため、
+    ローカルのシステム時刻を変更しても改ざんできません。
+  </p>
+</div>
+
+<div class="disclaimer">
+  ⚠️ このページは投資を推奨するものではありません。
+  予測の正確性・的中率を保証するものではなく、
+  あくまでも「予測が事前に確定されていた」ことの証明のみを目的としています。
+  投資判断はご自身の責任において行ってください。
+</div>
+
+</body>
+</html>
